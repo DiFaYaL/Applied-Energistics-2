@@ -27,8 +27,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.Nullable;
-
 import com.google.common.collect.ImmutableSet;
 
 import net.minecraft.block.Block;
@@ -141,7 +139,8 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 	private List<ItemStack> waitingToSend = null;
 	private IMEInventory<IAEItemStack> destination;
 	private int isWorking = -1;
-	private final Accessor accessor = new Accessor();
+	private final IStorageMonitorableAccessor accessor = this::getMonitorable;
+	private final IMEMonitor<IAEItemStack> configuredInv;
 
 	public DualityInterface( final AENetworkProxy networkProxy, final IInterfaceHost ih )
 	{
@@ -161,6 +160,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		this.items.setChangeSource( actionSource );
 
 		this.interfaceRequestSource = new InterfaceRequestSource( this.iHost );
+		this.configuredInv = new InterfaceInventory();
 	}
 
 	@Override
@@ -802,7 +802,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		{
 			if( this.hasConfig() )
 			{
-				return (IMEMonitor<T>) new InterfaceInventory( this );
+				return (IMEMonitor<T>) this.configuredInv;
 			}
 
 			return (IMEMonitor<T>) this.items;
@@ -878,14 +878,12 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		this.craftingTracker.cancel();
 	}
 
-	public IStorageMonitorable getMonitorable( final IActionSource src, final IStorageMonitorable myInterface )
+	public IStorageMonitorable getMonitorable( final IActionSource src )
 	{
 		if( Platform.canAccess( this.gridProxy, src ) )
 		{
-			return myInterface;
+			return this;
 		}
-
-		final DualityInterface di = this;
 
 		return new IStorageMonitorable()
 		{
@@ -895,7 +893,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 			{
 				if( channel == AEApi.instance().storage().getStorageChannel( IItemStorageChannel.class ) )
 				{
-					return (IMEMonitor<T>) new InterfaceInventory( di );
+					return (IMEMonitor<T>) DualityInterface.this.configuredInv;
 				}
 				return null;
 			}
@@ -1320,9 +1318,9 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 	private class InterfaceInventory extends MEMonitorIInventory
 	{
 
-		public InterfaceInventory( final DualityInterface tileInterface )
+		public InterfaceInventory()
 		{
-			super( new AdaptorItemHandler( tileInterface.storage ) );
+			super( new AdaptorItemHandler( DualityInterface.this.storage ) );
 			this.setActionSource( new MachineSource( DualityInterface.this.iHost ) );
 		}
 
@@ -1354,17 +1352,4 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 			return super.extractItems( request, type, src );
 		}
 	}
-
-	private class Accessor implements IStorageMonitorableAccessor
-	{
-
-		@Nullable
-		@Override
-		public IStorageMonitorable getInventory( IActionSource src )
-		{
-			return DualityInterface.this.getMonitorable( src, DualityInterface.this );
-		}
-
-	}
-
 }
