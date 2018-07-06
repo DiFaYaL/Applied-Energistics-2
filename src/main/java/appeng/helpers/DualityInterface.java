@@ -100,6 +100,7 @@ import appeng.tile.inventory.AppEngInternalInventory;
 import appeng.util.ConfigManager;
 import appeng.util.IConfigManagerHost;
 import appeng.util.InventoryAdaptor;
+import appeng.util.Lazy;
 import appeng.util.Platform;
 import appeng.util.inv.AdaptorItemHandler;
 import appeng.util.inv.IAEAppEngInventory;
@@ -140,7 +141,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 	private IMEInventory<IAEItemStack> destination;
 	private int isWorking = -1;
 	private final IStorageMonitorableAccessor accessor = this::getMonitorable;
-	private final IMEMonitor<IAEItemStack> configuredInv;
+	private final Lazy<IMEMonitor<IAEItemStack>> configuredInv = new Lazy<>( InterfaceInventory::new );
 
 	public DualityInterface( final AENetworkProxy networkProxy, final IInterfaceHost ih )
 	{
@@ -160,7 +161,6 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		this.items.setChangeSource( actionSource );
 
 		this.interfaceRequestSource = new InterfaceRequestSource( this.iHost );
-		this.configuredInv = new InterfaceInventory();
 	}
 
 	@Override
@@ -802,7 +802,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 		{
 			if( this.hasConfig() )
 			{
-				return (IMEMonitor<T>) this.configuredInv;
+				return (IMEMonitor<T>) this.configuredInv.get();
 			}
 
 			return (IMEMonitor<T>) this.items;
@@ -893,7 +893,7 @@ public class DualityInterface implements IGridTickable, IStorageMonitorable, IIn
 			{
 				if( channel == AEApi.instance().storage().getStorageChannel( IItemStorageChannel.class ) )
 				{
-					return (IMEMonitor<T>) DualityInterface.this.configuredInv;
+					return (IMEMonitor<T>) DualityInterface.this.configuredInv.get();
 				}
 				return null;
 			}

@@ -70,6 +70,7 @@ import appeng.me.storage.MEMonitorPassThrough;
 import appeng.me.storage.NullInventory;
 import appeng.util.ConfigManager;
 import appeng.util.IConfigManagerHost;
+import appeng.util.Lazy;
 import appeng.util.Platform;
 
 
@@ -98,7 +99,7 @@ public class DualityFluidInterface implements IGridTickable, IStorageMonitorable
 			.storage()
 			.getStorageChannel( IFluidStorageChannel.class ) );
 
-	private final IMEMonitor<IAEFluidStack> configuredInv;
+	private final Lazy<IMEMonitor<IAEFluidStack>> configuredInv = new Lazy<>( InterfaceInventory::new );
 
 	public DualityFluidInterface( final AENetworkProxy networkProxy, final IFluidInterfaceHost ih )
 	{
@@ -117,8 +118,6 @@ public class DualityFluidInterface implements IGridTickable, IStorageMonitorable
 		{
 			this.requireWork[i] = null;
 		}
-
-		this.configuredInv = new InterfaceInventory();
 	}
 
 	public IUpgradeableHost getHost()
@@ -150,9 +149,8 @@ public class DualityFluidInterface implements IGridTickable, IStorageMonitorable
 		{
 			if( this.hasConfig() )
 			{
-				return (IMEMonitor<T>) this.configuredInv;
+				return (IMEMonitor<T>) this.configuredInv.get();
 			}
-
 			return (IMEMonitor<T>) this.fluids;
 		}
 
