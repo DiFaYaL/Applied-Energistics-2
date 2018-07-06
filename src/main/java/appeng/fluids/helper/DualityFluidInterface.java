@@ -98,6 +98,8 @@ public class DualityFluidInterface implements IGridTickable, IStorageMonitorable
 			.storage()
 			.getStorageChannel( IFluidStorageChannel.class ) );
 
+	private final IMEMonitor<IAEFluidStack> configuredInv;
+
 	public DualityFluidInterface( final AENetworkProxy networkProxy, final IFluidInterfaceHost ih )
 	{
 		this.gridProxy = networkProxy;
@@ -115,6 +117,8 @@ public class DualityFluidInterface implements IGridTickable, IStorageMonitorable
 		{
 			this.requireWork[i] = null;
 		}
+
+		this.configuredInv = new InterfaceInventory();
 	}
 
 	public IUpgradeableHost getHost()
@@ -146,7 +150,7 @@ public class DualityFluidInterface implements IGridTickable, IStorageMonitorable
 		{
 			if( this.hasConfig() )
 			{
-				return (IMEMonitor<T>) new InterfaceInventory( this );
+				return (IMEMonitor<T>) this.configuredInv;
 			}
 
 			return (IMEMonitor<T>) this.fluids;
@@ -543,10 +547,10 @@ public class DualityFluidInterface implements IGridTickable, IStorageMonitorable
 	private class InterfaceInventory extends MEMonitorIFluidHandler
 	{
 
-		InterfaceInventory( final DualityFluidInterface tileInterface )
+		InterfaceInventory()
 		{
-			super( tileInterface.tanks );
-			this.setActionSource( new MachineSource( tileInterface.iHost ) );
+			super( DualityFluidInterface.this.tanks );
+			this.setActionSource( new MachineSource( DualityFluidInterface.this.iHost ) );
 		}
 
 		@Override

@@ -118,7 +118,7 @@ public class MEMonitorIFluidHandler implements IMEMonitor<IAEFluidStack>, ITicki
 	}
 
 	@Override
-	public IStorageChannel getChannel()
+	public IStorageChannel<IAEFluidStack> getChannel()
 	{
 		return AEApi.instance().storage().getStorageChannel( IFluidStorageChannel.class );
 	}
@@ -289,7 +289,7 @@ public class MEMonitorIFluidHandler implements IMEMonitor<IAEFluidStack>, ITicki
 	}
 
 	@Override
-	public IItemList<IAEFluidStack> getAvailableItems( final IItemList out )
+	public IItemList<IAEFluidStack> getAvailableItems( final IItemList<IAEFluidStack> out )
 	{
 		for( final CachedFluidStack is : this.memory.values() )
 		{
